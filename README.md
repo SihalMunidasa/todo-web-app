@@ -1,28 +1,5 @@
 # Task Manager 🚀
 
-## Features ✨
-
-- **User Authentication**
-  - Secure JWT-based registration/login
-  - Email verification
-  - Password reset functionality
-  - Profile management
-
-- **Task Management**
-  - Create, read, update, and delete tasks
-  - Set due dates and priorities
-  - Mark tasks as complete
-  - Filter and sort tasks
-  - Today's tasks highlight
-
-- **Technical Highlights**
-  - Responsive Material-UI design
-  - Redux for state management
-  - Form validation on client and server
-  - Secure password hashing
-  - Redis caching
-  - Error boundaries and loading states
-
 ## Tech Stack 🛠️
 
 **Backend:**
@@ -32,3 +9,13 @@
 - Redis for caching
 - Nodemailer for emails
 - Bcrypt for password hashing
+
+**Frontend:**
+- React (v18) with Hooks
+- Redux Toolkit for state management
+- Material-UI (MUI) for UI components
+- React Router (v6) for navigation
+- Axios for API communication
+- date-fns for date formatting
+- React Hook Form for form handling
+- ESLint + Prettier for code quality

@@ -1,2 +1,35 @@
-.env
+# Node
 node_modules/
+npm-debug.log
+
+# Environment Variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Cache
+.cache/
+
+# OS
+.DS_Store
+
+#Logs
+*.log
+
+# Backend Specific
+backend/.env
+backend/tests/.env
+
+# Frontend Specific
+frontend/.env
+frontend/.env.local

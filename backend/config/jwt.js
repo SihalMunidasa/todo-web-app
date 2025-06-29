@@ -1,3 +1,5 @@
+// backend/config/jwt.js
+
 import jwt from 'jsonwebtoken';
 import { redisClient } from './db.js';
 
@@ -52,15 +54,26 @@ export const verifyToken = (token, secret) => {
 export const storeRefreshToken = async (userId, refreshToken) => {
   if (!redisClient) throw new Error('Redis client not available');
   
-  // Store token with expiration matching token's TTL
+  // Parse expiration time
+  const expiresIn = process.env.JWT_REFRESH_EXPIRE;
+  let seconds;
+  
+  if (expiresIn.includes('d')) {
+    seconds = parseInt(expiresIn) * 86400; // days to seconds
+  } else if (expiresIn.includes('h')) {
+    seconds = parseInt(expiresIn) * 3600; // hours to seconds
+  } else if (expiresIn.includes('m')) {
+    seconds = parseInt(expiresIn) * 60; // minutes to seconds
+  } else {
+    seconds = parseInt(expiresIn); // assume seconds
+  }
+  
+  // Store token with expiration
   await redisClient.setAsync(
     `refresh_token:${userId}`,
     refreshToken,
     'EX',
-    // Convert expiration to seconds (7 days = 604800 seconds)
-    process.env.JWT_REFRESH_EXPIRE.includes('d') 
-      ? parseInt(process.env.JWT_REFRESH_EXPIRE) * 86400
-      : parseInt(process.env.JWT_REFRESH_EXPIRE)
+    seconds
   );
 };
 

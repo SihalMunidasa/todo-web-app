@@ -1,3 +1,5 @@
+// backend/models/User.js
+
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
@@ -9,54 +11,58 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please enter your name'],
       trim: true,
-      maxlength: [50, 'Name cannot exceed 50 characters']
+      maxlength: [50, 'Name cannot exceed 50 characters'],
     },
     email: {
       type: String,
       required: [true, 'Please enter your email'],
       unique: true,
       lowercase: true,
-      validate: [validator.isEmail, 'Please enter a valid email']
+      validate: [validator.isEmail, 'Please enter a valid email'],
     },
     password: {
       type: String,
       required: [true, 'Please enter a password'],
       minlength: [8, 'Password must be at least 8 characters'],
-      select: false
+      select: false,
+    },
+    passwordChangedAt: {
+      type: Date,
+      select: false,
     },
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     verificationToken: {
       type: String,
-      select: false
+      select: false,
     },
     verificationTokenExpires: {
       type: Date,
-      select: false
+      select: false,
     },
     resetPasswordToken: {
       type: String,
-      select: false
+      select: false,
     },
     resetPasswordExpires: {
       type: Date,
-      select: false
+      select: false,
     },
     role: {
       type: String,
       enum: ['user', 'admin'],
-      default: 'user'
+      default: 'user',
     },
     lastLogin: {
-      type: Date
+      type: Date,
     },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 );
 
@@ -64,11 +70,18 @@ const userSchema = new mongoose.Schema(
  * Middleware: Hash password before saving
  */
 userSchema.pre('save', async function (next) {
+  // Only run if password was modified
   if (!this.isModified('password')) return next();
 
   try {
     // Hash password with cost factor of 12
     this.password = await bcrypt.hash(this.password, 12);
+    
+    // Update passwordChangedAt timestamp for existing users
+    if (!this.isNew) {
+      this.passwordChangedAt = Date.now() - 1000; // 1 second in past
+    }
+    
     next();
   } catch (err) {
     next(err);
@@ -77,16 +90,29 @@ userSchema.pre('save', async function (next) {
 
 /**
  * Method: Compare entered password with stored hash
- * @param {string} candidatePassword - Password to compare
- * @returns {Promise<boolean>} True if passwords match
  */
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 /**
+ * Method: Check if password was changed after token was issued
+ * @param {number} JWTTimestamp - Timestamp when token was issued
+ * @returns {boolean} True if password was changed after token issuance
+ */
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
+};
+
+/**
  * Method: Generate verification token
- * @returns {string} Generated token
  */
 userSchema.methods.generateVerificationToken = function () {
   const token = crypto.randomBytes(32).toString('hex');
@@ -96,15 +122,13 @@ userSchema.methods.generateVerificationToken = function () {
     .update(token)
     .digest('hex');
   
-  // Set expiration to 1 hour
-  this.verificationTokenExpires = Date.now() + 3600000;
+  this.verificationTokenExpires = Date.now() + 3600000; // 1 hour
   
   return token;
 };
 
 /**
  * Method: Generate password reset token
- * @returns {string} Generated token
  */
 userSchema.methods.generatePasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
@@ -114,16 +138,13 @@ userSchema.methods.generatePasswordResetToken = function () {
     .update(resetToken)
     .digest('hex');
   
-  // Set expiration to 10 minutes
-  this.resetPasswordExpires = Date.now() + 600000;
+  this.resetPasswordExpires = Date.now() + 600000; // 10 minutes
   
   return resetToken;
 };
 
 /**
  * Method: Check if verification token is valid
- * @param {string} token - Token to validate
- * @returns {boolean} True if token is valid and not expired
  */
 userSchema.methods.isValidVerificationToken = function (token) {
   const hashedToken = crypto
@@ -139,8 +160,6 @@ userSchema.methods.isValidVerificationToken = function (token) {
 
 /**
  * Method: Check if password reset token is valid
- * @param {string} token - Token to validate
- * @returns {boolean} True if token is valid and not expired
  */
 userSchema.methods.isValidPasswordResetToken = function (token) {
   const hashedToken = crypto

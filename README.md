@@ -1,8 +1,5 @@
 # Task Manager 🚀
 
-![Project Screenshot](/screenshot.png) 
-*A modern task management application with secure authentication*
-
 ## Features ✨
 
 - **User Authentication**

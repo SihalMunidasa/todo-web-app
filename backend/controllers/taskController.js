@@ -1,5 +1,5 @@
 import Task from '../models/Task.js';
-import AppError from '../utils/error.js';
+import { AppError, globalErrorHandler } from '../utils/error.js';
 import CacheService from '../utils/cache.js';
 
 /**

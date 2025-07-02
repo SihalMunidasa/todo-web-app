@@ -4,7 +4,7 @@ import path from 'path';
 import handlebars from 'handlebars';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import AppError from './error.js';
+import { AppError, globalErrorHandler } from './error.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);

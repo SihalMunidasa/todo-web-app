@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { redisClient } from '../config/db.js';
 import User from '../models/User.js';
-import AppError from '../utils/error.js';
+import { AppError, globalErrorHandler } from '../utils/error.js';
 import { generateTokens, storeRefreshToken } from '../config/jwt.js';
 
 /**

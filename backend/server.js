@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
+import xss from 'xss';
 import hpp from 'hpp';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -61,7 +61,12 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 
 // Data sanitization against XSS
-app.use(xss());
+app.use((req, res, next) => {
+  if (req.body) {
+    req.body = xss(req.body); // Sanitize user input
+  }
+  next();
+});
 
 // Prevent parameter pollution
 app.use(hpp({
